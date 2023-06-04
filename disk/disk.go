@@ -7,8 +7,10 @@ import (
 	"log"
 	"math"
 	"os"
-	"smpfs/pool"
+
 	"time"
+
+	"github.com/Saf1u/smpfs/pool"
 )
 
 // Package disk defines a in memory byte block allocator

@@ -23,3 +23,49 @@ func TestNewDisk(t *testing.T) {
 		assert.Equal(t, testcase.expectedErr, err)
 	}
 }
+
+func TestWrite(t *testing.T) {
+	tests := []struct {
+		name        string
+		expectedErr error
+		data        []byte
+		diskSetup   func() *Disk
+		blocksUsed  int
+	}{
+
+		{name: "data size exceeding  available disk space",
+			expectedErr: ErrInsufficentMemoryError,
+			diskSetup: func() *Disk {
+				disk, _ := NewDisk(100, 10)
+				return disk
+			},
+			data: make([]byte, 101),
+		},
+		{name: "data duccesfully written",
+			expectedErr: nil,
+			diskSetup: func() *Disk {
+				disk, _ := NewDisk(100, 10)
+				return disk
+			},
+			data:       make([]byte, 100),
+			blocksUsed: 10,
+		},
+		{name: "data duccesfully written",
+			expectedErr: nil,
+			diskSetup: func() *Disk {
+				disk, _ := NewDisk(100, 100)
+				return disk
+			},
+			data:       make([]byte, 100),
+			blocksUsed: 1,
+		},
+	}
+	for _, testcase := range tests {
+		disk := testcase.diskSetup()
+		rec, err := disk.Write(testcase.data)
+		assert.Equal(t, testcase.expectedErr, err)
+		if err == nil {
+			assert.Equal(t, len(rec.blocks), testcase.blocksUsed)
+		}
+	}
+}

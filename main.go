@@ -1,6 +1,6 @@
 package main
 
-import "smpfs/disk"
+import "github.com/Saf1u/smpfs/disk"
 
 func main() {
 
@@ -12,5 +12,3 @@ func main() {
 	disk.SaveDisk()
 
 }
-
-

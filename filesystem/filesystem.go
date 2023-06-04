@@ -1,8 +1,9 @@
 package filesystem
 
 import (
-	"smpfs/disk"
 	"strings"
+
+	"github.com/Saf1u/smpfs/disk"
 )
 
 type fileSystem struct {
