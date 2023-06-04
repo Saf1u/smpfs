@@ -69,3 +69,32 @@ func TestWrite(t *testing.T) {
 		}
 	}
 }
+
+func TestRead(t *testing.T) {
+	tests := []struct {
+		name         string
+		expectedErr  error
+		diskSetup    func() (*Disk, *BlockRecord)
+		expectedData []byte
+	}{
+
+		{name: "data duccesfully written",
+			expectedErr: nil,
+			diskSetup: func() (*Disk, *BlockRecord) {
+				disk, _ := NewDisk(1000, 5)
+				disk.Write([]byte("hello I'm a string scattered in the memory region but is not read"))
+				manifest, _ := disk.Write([]byte("hello I'm a string scattered in the memory region"))
+				return disk, manifest
+			},
+			expectedData: []byte("hello I'm a string scattered in the memory region"),
+		},
+	}
+	for _, testcase := range tests {
+		disk, manifest := testcase.diskSetup()
+		rec, err := disk.Read(manifest)
+		assert.Equal(t, testcase.expectedErr, err)
+		if err == nil {
+			assert.Equal(t, rec, testcase.expectedData)
+		}
+	}
+}
