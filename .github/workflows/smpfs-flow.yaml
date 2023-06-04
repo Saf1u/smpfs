@@ -4,16 +4,12 @@ on: [push]
 
 jobs:
   test:
-
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/setup-go@v4
         with:
           go-version: '1.15'
 
-      - name: Test
-        - run: go get .
-        - run: go test -v ./...
+      - run: go get .
+      - run: go test -v ./...
