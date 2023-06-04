@@ -15,4 +15,5 @@ jobs:
           go-version: '1.15'
 
       - name: Test
-        run: go test -v ./...
+        - run: go get .
+        - run: go test -v ./...
