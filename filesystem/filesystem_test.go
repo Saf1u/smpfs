@@ -54,7 +54,7 @@ func TestFindParentDir(t *testing.T) {
 	}{
 
 		{
-			name: "shouldLocateBasePath",
+			name: "shouldLocateParentPath",
 			//eg:/usr/home/desktop desktop parentDir is home
 			pathStructure:    []string{"usr", "home", "desktop"},
 			expectedBasePath: "home",
@@ -76,7 +76,64 @@ func TestFindParentDir(t *testing.T) {
 					},
 				}
 				root := &directory{
-					dirName: "start",
+					dirName: "root",
+					contents: map[string]item{
+						"usr": usr,
+					},
+				}
+				fs := &fileSystem{
+					root: root,
+				}
+				return fs
+			},
+		},
+		{
+			name: "shouldLocateParentPath",
+			//eg:/usr/home/desktop desktop parentDir is home
+			pathStructure:    []string{"usr"},
+			expectedBasePath: "root",
+			expectedErr:      nil,
+			setupFs: func() *fileSystem {
+
+				usr := &directory{
+					dirName: "usr",
+				}
+				root := &directory{
+					dirName: "root",
+					contents: map[string]item{
+						"usr": usr,
+					},
+				}
+				fs := &fileSystem{
+					root: root,
+				}
+				return fs
+			},
+		},
+		{
+			name: "shouldLocateParentPath",
+			//eg:/usr/home/desktop desktop parentDir is home
+			pathStructure:    []string{"usr", "sus", "desktop"},
+			expectedBasePath: "",
+			expectedErr:      ErrPathDoesNotExists,
+			setupFs: func() *fileSystem {
+				desktop := &directory{
+					dirName: "desktop",
+				}
+				home := &directory{
+					dirName: "home",
+					contents: map[string]item{
+						"desktop": desktop,
+					},
+				}
+				usr := &directory{
+					dirName: "usr",
+					contents: map[string]item{
+						"home": home,
+					},
+				}
+				root := &directory{
+					dirName: "root",
 					contents: map[string]item{
 						"usr": usr,
 					},
