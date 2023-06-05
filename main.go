@@ -1,14 +1,21 @@
 package main
 
-import "github.com/Saf1u/smpfs/disk"
+import (
+	"fmt"
+	"regexp"
+)
 
 func main() {
 
-	disk, err := disk.NewDisk(800*1024, 5)
+	// disk, err := disk.NewDisk(800*1024, 5)
 
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// disk.SaveDisk()
+	match, err := regexp.MatchString(`^(/[^/ ]*)+/?$`, "/abc/")
 	if err != nil {
 		panic(err)
 	}
-	disk.SaveDisk()
-
+	fmt.Println(match)
 }
