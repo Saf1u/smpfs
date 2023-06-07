@@ -204,7 +204,7 @@ func TestCreateDir(t *testing.T) {
 			//eg:/usr/home/desktop desktop parentDir is home
 			pathName:     "/usr",
 			expectedName: "",
-			expectedErr:  ErrDirrAlreadyExistError,
+			expectedErr:  ErrDirrAlreadyExist,
 			setupFs: func() *fileSystem {
 
 				usr := &directory{
@@ -227,6 +227,87 @@ func TestCreateDir(t *testing.T) {
 	for _, testcase := range tests {
 		fs := testcase.setupFs()
 		err := fs.CreateDir(testcase.pathName)
+		assert.Equal(t, testcase.expectedErr, err)
+	}
+}
+
+func TestCreateFile(t *testing.T) {
+	tests := []struct {
+		name         string
+		expectedErr  error
+		pathName     string
+		expectedName string
+		setupFs      func() *fileSystem
+	}{
+
+		{
+			name: "succesful create",
+			//eg:/usr/home/desktop desktop parentDir is home
+			pathName:     "/usr/home/desktop/new.txt",
+			expectedName: "new.txt",
+			expectedErr:  nil,
+			setupFs: func() *fileSystem {
+				desktop := &directory{
+					dirName:  "desktop",
+					contents: map[string]item{},
+				}
+				home := &directory{
+					dirName: "home",
+					contents: map[string]item{
+						"desktop": desktop,
+					},
+				}
+				usr := &directory{
+					dirName: "usr",
+					contents: map[string]item{
+						"home": home,
+					},
+				}
+				root := &directory{
+					dirName: "root",
+					contents: map[string]item{
+						"usr": usr,
+					},
+				}
+				fs := &fileSystem{
+					root: root,
+				}
+				return fs
+			},
+		},
+		{
+			name: "creating a file that exists",
+			//eg:/usr/home/desktop desktop parentDir is home
+			pathName:     "/home/usr.txt",
+			expectedName: "",
+			expectedErr:  ErrFileAlreadyExist,
+			setupFs: func() *fileSystem {
+
+				usr := &file{
+					fileName: "usr.txt",
+				}
+				home := &directory{
+					dirName: "home",
+					contents: map[string]item{
+						"usr.txt": usr,
+					},
+				}
+				root := &directory{
+					dirName: "root",
+					contents: map[string]item{
+						"home": home,
+					},
+				}
+				fs := &fileSystem{
+					root: root,
+				}
+				return fs
+			},
+		},
+	}
+	for _, testcase := range tests {
+		fs := testcase.setupFs()
+		err := fs.CreateFile(testcase.pathName)
 		assert.Equal(t, testcase.expectedErr, err)
 	}
 }
