@@ -16,6 +16,7 @@ var (
 	ErrPathDoesNotExists      = errors.New("path to dir does not exists")
 	ErrMalformedPathStructure = errors.New("the provided path is invalid")
 	ErrFileAlreadyExist       = errors.New("the file already exists")
+	ErrFileDoesNotExist       = errors.New("the file does not exists")
 )
 
 type item interface {
@@ -38,5 +39,14 @@ func (f *fileSystem) CreateFile(path string) error {
 		return err
 	}
 	return f.root.(*directory).createFile(structure)
+
+}
+
+func (f *fileSystem) OpenFile(path string) (File, error) {
+	structure, err := parseDirStruture(path)
+	if err != nil {
+		return nil, err
+	}
+	return f.root.(*directory).openFile(structure)
 
 }

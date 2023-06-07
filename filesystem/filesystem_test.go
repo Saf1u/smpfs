@@ -311,3 +311,89 @@ func TestCreateFile(t *testing.T) {
 		assert.Equal(t, testcase.expectedErr, err)
 	}
 }
+
+func TestOpenFile(t *testing.T) {
+	tests := []struct {
+		name         string
+		expectedErr  error
+		pathName     string
+		expectedName string
+		setupFs      func() *fileSystem
+	}{
+
+		{
+			name: "file cannot be found",
+			//eg:/usr/home/desktop desktop parentDir is home
+			pathName:     "/usr/home/desktop/new.txt",
+			expectedName: "",
+			expectedErr:  ErrFileDoesNotExist,
+			setupFs: func() *fileSystem {
+				desktop := &directory{
+					dirName: "desktop",
+					contents: map[string]item{
+						"file.txt": &file{
+							fileName: "file.txt",
+						},
+					},
+				}
+				home := &directory{
+					dirName: "home",
+					contents: map[string]item{
+						"desktop": desktop,
+					},
+				}
+				usr := &directory{
+					dirName: "usr",
+					contents: map[string]item{
+						"home": home,
+					},
+				}
+				root := &directory{
+					dirName: "root",
+					contents: map[string]item{
+						"usr": usr,
+					},
+				}
+				fs := &fileSystem{
+					root: root,
+				}
+				return fs
+			},
+		},
+		{
+			name: "accesing a file that exists",
+			//eg:/usr/home/desktop desktop parentDir is home
+			pathName:     "/home/usr.txt",
+			expectedName: "",
+			expectedErr:  nil,
+			setupFs: func() *fileSystem {
+
+				usr := &file{
+					fileName: "usr.txt",
+				}
+				home := &directory{
+					dirName: "home",
+					contents: map[string]item{
+						"usr.txt": usr,
+					},
+				}
+				root := &directory{
+					dirName: "root",
+					contents: map[string]item{
+						"home": home,
+					},
+				}
+				fs := &fileSystem{
+					root: root,
+				}
+				return fs
+			},
+		},
+	}
+	for _, testcase := range tests {
+		fs := testcase.setupFs()
+		_, err := fs.OpenFile(testcase.pathName)
+		assert.Equal(t, testcase.expectedErr, err)
+
+	}
+}

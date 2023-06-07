@@ -28,6 +28,20 @@ func (dir *directory) createFile(levels []string) error {
 	}
 
 }
+func (dir *directory) openFile(levels []string) (File, error) {
+	baseDir, err := dir.findParentDir(levels)
+	if err != nil {
+		return nil, err
+	}
+
+	fileName := levels[len(levels)-1]
+	if fsItem, exist := baseDir.(*directory).contents[fileName]; exist && fsItem.isFile() {
+		return fsItem.(File), nil
+	} else {
+		return nil, ErrFileDoesNotExist
+	}
+
+}
 
 func (dir *directory) createDir(levels []string) error {
 	baseDir, err := dir.findParentDir(levels)
