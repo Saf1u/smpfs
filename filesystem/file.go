@@ -20,6 +20,10 @@ type File interface {
 	setManifest(*disk.BlockRecord)
 }
 
+func NewFile(name string) File {
+	return &file{fileName: name, info: disk.NewBlockRecord(), createdAt: time.Now(), lastModified: time.Now()}
+}
+
 func (fl *file) isFile() bool {
 	return true
 }
@@ -35,9 +39,9 @@ func (fl *file) setCreationTs(time time.Time) {
 }
 
 func (fl *file) getManifest() *disk.BlockRecord {
-	return nil
+	return fl.info
 }
 
 func (fl *file) setManifest(manifest *disk.BlockRecord) {
-
+	fl.info=manifest
 }

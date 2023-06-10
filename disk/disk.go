@@ -38,6 +38,10 @@ type BlockRecord struct {
 	blocks []block
 }
 
+func NewBlockRecord() *BlockRecord {
+	return &BlockRecord{make([]block, 0)}
+}
+
 func (blockRecord *BlockRecord) addRecord(b block) {
 	blockRecord.blocks = append(blockRecord.blocks, b)
 }

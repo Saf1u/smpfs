@@ -22,7 +22,7 @@ func (dir *directory) createFile(levels []string) error {
 	if fsItem, exist := baseDir.(*directory).contents[fileName]; exist && fsItem.isFile() {
 		return ErrFileAlreadyExist
 	} else {
-		newFile := &file{fileName: fileName}
+		newFile := NewFile(fileName).(item)
 		baseDir.(*directory).contents[fileName] = newFile
 		return nil
 	}

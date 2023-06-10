@@ -480,3 +480,59 @@ func TestWriteFile(t *testing.T) {
 
 	}
 }
+
+func TestRead(t *testing.T) {
+	tests := []struct {
+		name         string
+		expectedErr  error
+		dataToExpect string
+		pathName     string
+		setupFs      func(t *testing.T) *fileSystem
+	}{
+
+		{
+			name: "reading succesfully from a file that exists",
+			//eg:/usr/home/desktop desktop parentDir is home
+			pathName:     "/home/usr.txt",
+			dataToExpect: "random text here in the block",
+			expectedErr:  nil,
+			setupFs: func(t *testing.T) *fileSystem {
+				usr := NewFile("usr.txt").(item)
+				home := &directory{
+					dirName: "home",
+					contents: map[string]item{
+						"usr.txt": usr,
+					},
+				}
+				root := &directory{
+					dirName: "root",
+					contents: map[string]item{
+						"home": home,
+					},
+				}
+				disk, _ := disk.NewDisk(100, 10)
+				fs := &fileSystem{
+					root: root,
+					disk: disk,
+				}
+				fl, err := fs.OpenFile("/home/usr.txt")
+				if err != nil {
+					t.Fatal(err)
+				}
+				err = fs.WriteFile(fl, []byte("random text here in the block"))
+				if err != nil {
+					t.Fatal(err)
+				}
+				return fs
+			},
+		},
+	}
+	for _, testcase := range tests {
+		fs := testcase.setupFs(t)
+		file, _ := fs.OpenFile(testcase.pathName)
+		data, err := fs.ReadFile(file)
+		assert.Equal(t, testcase.expectedErr, err)
+		assert.Equal(t, []byte(testcase.dataToExpect), data)
+
+	}
+}

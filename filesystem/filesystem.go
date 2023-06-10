@@ -57,6 +57,17 @@ func (f *fileSystem) WriteFile(fileHandle File, data []byte) error {
 	return nil
 }
 
+// ReadFile reads the data stored in the file
+func (f *fileSystem) ReadFile(fileHandle File) ([]byte, error) {
+
+	data, err := f.disk.Read(fileHandle.getManifest())
+	if err != nil {
+		return nil, err
+	}
+	fileHandle.updateAccessTs(time.Now())
+	return data, nil
+}
+
 // CreateFile creates a file in the nested tree structure,it does not create all parent paths of the final path
 func (f *fileSystem) CreateFile(path string) error {
 	structure, err := parseDirStruture(path)
