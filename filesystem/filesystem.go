@@ -32,6 +32,17 @@ func (f *fileSystem) CreateDir(path string) error {
 	return f.root.(*directory).createDir(structure)
 
 }
+func (f *fileSystem) WriteFile(fileHandle File, data []byte) error {
+	internalFile := fileHandle.(*file)
+	//Truncate File
+	f.disk.Delete(internalFile.info)
+	fileManifest, err := f.disk.Write(data)
+	if err != nil {
+		return err
+	}
+	internalFile.info = fileManifest
+	return nil
+}
 
 func (f *fileSystem) CreateFile(path string) error {
 	structure, err := parseDirStruture(path)
