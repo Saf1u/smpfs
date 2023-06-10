@@ -9,7 +9,15 @@ import (
 
 type fileSystem struct {
 	root item
-	disk *disk.Disk
+	disk disk.Disk
+}
+
+type FileSystem interface {
+	CreateDir(path string) error
+	WriteFile(fileHandle File, data []byte) error
+	ReadFile(fileHandle File) ([]byte, error)
+	CreateFile(path string) error
+	OpenFile(path string) (File, error)
 }
 
 var (
@@ -25,6 +33,14 @@ var (
 type item interface {
 	isFile() bool
 	name() string
+}
+
+func NewFileSystem(disk disk.Disk) FileSystem {
+	root := &directory{
+		dirName:  "root",
+		contents: map[string]item{},
+	}
+	return &fileSystem{root: root, disk: disk}
 }
 
 // CreateDir creates a directory in the nested tree structure,it does not create all parent paths of the final path

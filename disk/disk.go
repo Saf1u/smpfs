@@ -28,10 +28,17 @@ func (b *block) SetUsed(size int) {
 	b.used = size
 }
 
-type Disk struct {
+type disk struct {
 	buffer    []byte
 	blockPool *pool.Pool
 	blockSize int
+}
+
+type Disk interface {
+	Write(fileBytes []byte) (*BlockRecord, error)
+	Read(blockManifest *BlockRecord) ([]byte, error)
+	Delete(blockManifest *BlockRecord)
+	SaveDisk()
 }
 
 type BlockRecord struct {
@@ -51,7 +58,7 @@ var (
 	ErrInsufficentMemoryError    = errors.New("not enough memory present to store file")
 )
 
-func NewDisk(size int, blockSize int) (*Disk, error) {
+func NewDisk(size int, blockSize int) (Disk, error) {
 	if blockSize > size {
 		return nil, ErrBlockSizeExceedsDriveSize
 	}
@@ -66,14 +73,14 @@ func NewDisk(size int, blockSize int) (*Disk, error) {
 		startIndex = endIndex + 1
 		endIndex = (endIndex + blockSize)
 	}
-	return &Disk{
+	return &disk{
 		buffer:    make([]byte, size),
 		blockPool: pool,
 		blockSize: blockSize,
 	}, nil
 }
 
-func (disk *Disk) Write(fileBytes []byte) (*BlockRecord, error) {
+func (disk *disk) Write(fileBytes []byte) (*BlockRecord, error) {
 	availableBlocks := disk.blockPool.AvaialbleResourceUnits()
 	blocksNeeded := int(math.Ceil(float64(len(fileBytes)) / float64(disk.blockSize)))
 	if blocksNeeded > availableBlocks {
@@ -101,7 +108,7 @@ func (disk *Disk) Write(fileBytes []byte) (*BlockRecord, error) {
 	return blockManifest, nil
 }
 
-func (disk *Disk) Read(blockManifest *BlockRecord) ([]byte, error) {
+func (disk *disk) Read(blockManifest *BlockRecord) ([]byte, error) {
 	outBuffer := make([]byte, 0)
 	bufferWrapper := bytes.NewBuffer(outBuffer)
 	for _, blocks := range blockManifest.blocks {
@@ -114,7 +121,7 @@ func (disk *Disk) Read(blockManifest *BlockRecord) ([]byte, error) {
 	return bufferWrapper.Bytes(), nil
 }
 
-func (disk *Disk) Delete(blockManifest *BlockRecord) {
+func (disk *disk) Delete(blockManifest *BlockRecord) {
 	//no zeroing needed
 	for _, block := range blockManifest.blocks {
 		block.SetUsed(0)
@@ -122,7 +129,7 @@ func (disk *Disk) Delete(blockManifest *BlockRecord) {
 	}
 }
 
-func (disk *Disk) SaveDisk() {
+func (disk *disk) SaveDisk() {
 	name := "DISKSNAPSHOT-" + time.Now().Format("Jan _2 15:04:05.000000000")
 	zipFile, err := os.Create(name + ".zip")
 	if err != nil {

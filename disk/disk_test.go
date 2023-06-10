@@ -29,13 +29,13 @@ func TestWrite(t *testing.T) {
 		name        string
 		expectedErr error
 		data        []byte
-		diskSetup   func() *Disk
+		diskSetup   func() Disk
 		blocksUsed  int
 	}{
 
 		{name: "data size exceeding  available disk space",
 			expectedErr: ErrInsufficentMemoryError,
-			diskSetup: func() *Disk {
+			diskSetup: func() Disk {
 				disk, _ := NewDisk(100, 10)
 				return disk
 			},
@@ -43,7 +43,7 @@ func TestWrite(t *testing.T) {
 		},
 		{name: "data duccesfully written",
 			expectedErr: nil,
-			diskSetup: func() *Disk {
+			diskSetup: func() Disk {
 				disk, _ := NewDisk(100, 10)
 				return disk
 			},
@@ -52,7 +52,7 @@ func TestWrite(t *testing.T) {
 		},
 		{name: "data duccesfully written",
 			expectedErr: nil,
-			diskSetup: func() *Disk {
+			diskSetup: func() Disk {
 				disk, _ := NewDisk(100, 100)
 				return disk
 			},
@@ -74,13 +74,13 @@ func TestRead(t *testing.T) {
 	tests := []struct {
 		name         string
 		expectedErr  error
-		diskSetup    func() (*Disk, *BlockRecord)
+		diskSetup    func() (Disk, *BlockRecord)
 		expectedData []byte
 	}{
 
 		{name: "data duccesfully written",
 			expectedErr: nil,
-			diskSetup: func() (*Disk, *BlockRecord) {
+			diskSetup: func() (Disk, *BlockRecord) {
 				disk, _ := NewDisk(1000, 5)
 				disk.Write([]byte("hello I'm a string scattered in the memory region but is not read"))
 				manifest, _ := disk.Write([]byte("hello I'm a string scattered in the memory region"))
