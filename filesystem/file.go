@@ -14,7 +14,10 @@ type file struct {
 }
 
 type File interface {
-	Close() error
+	setCreationTs(time.Time)
+	updateAccessTs(time.Time)
+	getManifest() *disk.BlockRecord
+	setManifest(*disk.BlockRecord)
 }
 
 func (fl *file) isFile() bool {
@@ -23,7 +26,18 @@ func (fl *file) isFile() bool {
 func (fl *file) name() string {
 	return fl.fileName
 }
+func (fl *file) updateAccessTs(time time.Time) {
 
-func (fl *file) Close() error {
+}
+
+func (fl *file) setCreationTs(time time.Time) {
+
+}
+
+func (fl *file) getManifest() *disk.BlockRecord {
 	return nil
+}
+
+func (fl *file) setManifest(manifest *disk.BlockRecord) {
+
 }

@@ -2,6 +2,7 @@ package filesystem
 
 import (
 	"errors"
+	"time"
 
 	"github.com/Saf1u/smpfs/disk"
 )
@@ -17,6 +18,8 @@ var (
 	ErrMalformedPathStructure = errors.New("the provided path is invalid")
 	ErrFileAlreadyExist       = errors.New("the file already exists")
 	ErrFileDoesNotExist       = errors.New("the file does not exists")
+	ErrFileCouldNotBeWritten  = errors.New("not enough emmoey to write to files")
+	ErrUnkonwnError           = errors.New("???")
 )
 
 type item interface {
@@ -24,6 +27,7 @@ type item interface {
 	name() string
 }
 
+// CreateDir creates a directory in the nested tree structure,it does not create all parent paths of the final path
 func (f *fileSystem) CreateDir(path string) error {
 	structure, err := parseDirStruture(path)
 	if err != nil {
@@ -32,18 +36,28 @@ func (f *fileSystem) CreateDir(path string) error {
 	return f.root.(*directory).createDir(structure)
 
 }
+
+// WriteFile truncates the file and writes the data to the file
 func (f *fileSystem) WriteFile(fileHandle File, data []byte) error {
-	internalFile := fileHandle.(*file)
+
 	//Truncate File
-	f.disk.Delete(internalFile.info)
+	if fileHandle.getManifest() != nil {
+		f.disk.Delete(fileHandle.getManifest())
+	}
 	fileManifest, err := f.disk.Write(data)
 	if err != nil {
-		return err
+		if errors.Is(err, disk.ErrInsufficentMemoryError) {
+			return ErrFileCouldNotBeWritten
+		} else {
+			return ErrUnkonwnError
+		}
 	}
-	internalFile.info = fileManifest
+	fileHandle.setManifest(fileManifest)
+	fileHandle.updateAccessTs(time.Now())
 	return nil
 }
 
+// CreateFile creates a file in the nested tree structure,it does not create all parent paths of the final path
 func (f *fileSystem) CreateFile(path string) error {
 	structure, err := parseDirStruture(path)
 	if err != nil {
@@ -53,6 +67,7 @@ func (f *fileSystem) CreateFile(path string) error {
 
 }
 
+// OpenFile Searches for a file in the directory structure, and returns a file pointer to enable reads and writes
 func (f *fileSystem) OpenFile(path string) (File, error) {
 	structure, err := parseDirStruture(path)
 	if err != nil {

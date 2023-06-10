@@ -3,6 +3,7 @@ package filesystem
 import (
 	"testing"
 
+	"github.com/Saf1u/smpfs/disk"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -393,6 +394,88 @@ func TestOpenFile(t *testing.T) {
 	for _, testcase := range tests {
 		fs := testcase.setupFs()
 		_, err := fs.OpenFile(testcase.pathName)
+		assert.Equal(t, testcase.expectedErr, err)
+
+	}
+}
+
+func TestWriteFile(t *testing.T) {
+	tests := []struct {
+		name        string
+		expectedErr error
+		dataToWrite string
+		pathName    string
+		setupFs     func() *fileSystem
+	}{
+
+		{
+			name: "writing succesfully to a file that exists",
+			//eg:/usr/home/desktop desktop parentDir is home
+			pathName:    "/home/usr.txt",
+			dataToWrite: "random text",
+			expectedErr: nil,
+			setupFs: func() *fileSystem {
+				usr := &file{
+					fileName: "usr.txt",
+					info:     &disk.BlockRecord{},
+				}
+				home := &directory{
+					dirName: "home",
+					contents: map[string]item{
+						"usr.txt": usr,
+					},
+				}
+				root := &directory{
+					dirName: "root",
+					contents: map[string]item{
+						"home": home,
+					},
+				}
+				disk, _ := disk.NewDisk(100, 10)
+				fs := &fileSystem{
+					root: root,
+					disk: disk,
+				}
+				return fs
+			},
+		},
+
+		{
+			name: "writing unsuccesfully to a file due to disk issues",
+			//eg:/usr/home/desktop desktop parentDir is home
+			pathName:    "/home/usr.txt",
+			dataToWrite: "random text",
+			expectedErr: ErrFileCouldNotBeWritten,
+			setupFs: func() *fileSystem {
+				usr := &file{
+					fileName: "usr.txt",
+					info:     &disk.BlockRecord{},
+				}
+				home := &directory{
+					dirName: "home",
+					contents: map[string]item{
+						"usr.txt": usr,
+					},
+				}
+				root := &directory{
+					dirName: "root",
+					contents: map[string]item{
+						"home": home,
+					},
+				}
+				disk, _ := disk.NewDisk(3, 3)
+				fs := &fileSystem{
+					root: root,
+					disk: disk,
+				}
+				return fs
+			},
+		},
+	}
+	for _, testcase := range tests {
+		fs := testcase.setupFs()
+		file, _ := fs.OpenFile(testcase.pathName)
+		err := fs.WriteFile(file, []byte(testcase.dataToWrite))
 		assert.Equal(t, testcase.expectedErr, err)
 
 	}
