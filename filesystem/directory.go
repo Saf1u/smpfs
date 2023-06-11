@@ -59,6 +59,18 @@ func (dir *directory) createDir(levels []string) error {
 	}
 
 }
+func (dir *directory) listDir(levels []string) ([]string, error) {
+	baseDir, err := dir.findParentDir(levels)
+	if err != nil {
+		return nil, err
+	}
+	concDir := baseDir.(*directory)
+	items := make([]string, 0)
+	for names, _ := range concDir.contents {
+		items = append(items, names)
+	}
+	return items, nil
+}
 
 func (dir *directory) findParentDir(levels []string) (item, error) {
 	folderName := levels[0]

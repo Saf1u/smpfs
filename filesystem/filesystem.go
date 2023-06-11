@@ -2,6 +2,7 @@ package filesystem
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/Saf1u/smpfs/disk"
@@ -18,6 +19,7 @@ type FileSystem interface {
 	ReadFile(fileHandle File) ([]byte, error)
 	CreateFile(path string) error
 	OpenFile(path string) (File, error)
+	ListDir(path string) ([]string, error)
 }
 
 var (
@@ -101,5 +103,27 @@ func (f *fileSystem) OpenFile(path string) (File, error) {
 		return nil, err
 	}
 	return f.root.(*directory).openFile(structure)
+
+}
+
+// ListDir lists filesystem dir contents
+func (f *fileSystem) ListDir(path string) ([]string, error) {
+	//add junk last path
+	var structure []string
+	var err error
+	if path != "/" {
+		path = fmt.Sprint(path, "/doesnotexist")
+
+		structure, err = parseDirStruture(path)
+
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		structure = make([]string, 1)
+		structure[0] = "junk"
+	}
+
+	return f.root.(*directory).listDir(structure)
 
 }
