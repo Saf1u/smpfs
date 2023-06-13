@@ -53,6 +53,18 @@ func (blockRecord *BlockRecord) addRecord(b block) {
 	blockRecord.blocks = append(blockRecord.blocks, b)
 }
 
+func (blockRecord *BlockRecord) getUnfilledBlock() *block {
+	if len(blockRecord.blocks) == 0 {
+		return nil
+	}
+	lastBlock := blockRecord.blocks[len(blockRecord.blocks)-1]
+	if lastBlock.size == lastBlock.used {
+		return nil
+	}
+	remainderIndex := lastBlock.startIndex + lastBlock.used
+	return &block{remainderIndex, lastBlock.endIndex, 0, lastBlock.endIndex - remainderIndex}
+}
+
 var (
 	ErrBlockSizeExceedsDriveSize = errors.New("block size is greater than available disk")
 	ErrInsufficentMemoryError    = errors.New("not enough memory present to store file")
