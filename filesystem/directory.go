@@ -66,7 +66,7 @@ func (dir *directory) listDir(levels []string) ([]string, error) {
 	}
 	concDir := baseDir.(*directory)
 	items := make([]string, 0)
-	for names, _ := range concDir.contents {
+	for names:= range concDir.contents {
 		items = append(items, names)
 	}
 	return items, nil

@@ -108,7 +108,7 @@ func (f *fileSystem) OpenFile(path string) (File, error) {
 
 // ListDir lists filesystem dir contents
 func (f *fileSystem) ListDir(path string) ([]string, error) {
-	//add junk last path
+	//add junk last path to levrage exisiting functionality that finds parent dir
 	var structure []string
 	var err error
 	if path != "/" {

@@ -536,3 +536,138 @@ func TestRead(t *testing.T) {
 
 	}
 }
+
+func TestListsDir(t *testing.T) {
+	tests := []struct {
+		name              string
+		expectedItemNames []string
+		expectedError     error
+		pathName          string
+		setupFs           func(t *testing.T) *fileSystem
+	}{
+
+		{
+			name: "listing files from an exisiting dir",
+			//eg:/usr/home/desktop desktop parentDir is home
+			pathName:          "/home",
+			expectedItemNames: []string{"textfile1.txt", "textfile2.txt"},
+			setupFs: func(t *testing.T) *fileSystem {
+				textfilea := NewFile("textfile1.txt").(item)
+				textfileb := NewFile("textfile2.txt").(item)
+				home := &directory{
+					dirName: "home",
+					contents: map[string]item{
+						"textfile1.txt": textfilea,
+						"textfile2.txt": textfileb,
+					},
+				}
+				root := &directory{
+					dirName: "root",
+					contents: map[string]item{
+						"home": home,
+					},
+				}
+				disk, _ := disk.NewDisk(100, 10)
+				fs := &fileSystem{
+					root: root,
+					disk: disk,
+				}
+				return fs
+			},
+		},
+
+		{
+			name: "listing folders",
+			//eg:/usr/home/desktop desktop parentDir is home
+			pathName:          "/home",
+			expectedItemNames: []string{"images", "videos"},
+			setupFs: func(t *testing.T) *fileSystem {
+				imageDir := &directory{
+					dirName: "images",
+				}
+				videoDir := &directory{
+					dirName: "videos",
+				}
+				home := &directory{
+					dirName: "home",
+					contents: map[string]item{
+						"images": imageDir,
+						"videos": videoDir,
+					},
+				}
+				root := &directory{
+					dirName: "root",
+					contents: map[string]item{
+						"home": home,
+					},
+				}
+				disk, _ := disk.NewDisk(100, 10)
+				fs := &fileSystem{
+					root: root,
+					disk: disk,
+				}
+				return fs
+			},
+		},
+
+		{
+			name: "empty dir",
+			//eg:/usr/home/desktop desktop parentDir is home
+			pathName:          "/home",
+			expectedItemNames: []string{},
+			setupFs: func(t *testing.T) *fileSystem {
+
+				home := &directory{
+					dirName: "home",
+				}
+				root := &directory{
+					dirName: "root",
+					contents: map[string]item{
+						"home": home,
+					},
+				}
+				disk, _ := disk.NewDisk(100, 10)
+				fs := &fileSystem{
+					root: root,
+					disk: disk,
+				}
+				return fs
+			},
+		},
+
+		{
+			name: "non existing path",
+			//eg:/usr/home/desktop desktop parentDir is home
+			pathName:          "/home/files",
+			expectedItemNames: []string{},
+			expectedError: ErrPathDoesNotExists,
+			setupFs: func(t *testing.T) *fileSystem {
+
+				home := &directory{
+					dirName: "home",
+				}
+				root := &directory{
+					dirName: "root",
+					contents: map[string]item{
+						"home": home,
+					},
+				}
+				disk, _ := disk.NewDisk(100, 10)
+				fs := &fileSystem{
+					root: root,
+					disk: disk,
+				}
+				return fs
+			},
+		},
+	}
+	for _, testcase := range tests {
+		fs := testcase.setupFs(t)
+		items, err := fs.ListDir(testcase.pathName)
+		if err == nil {
+			assert.ElementsMatch(t, testcase.expectedItemNames, items)
+		}
+		assert.Equal(t, testcase.expectedError, err)
+
+	}
+}
