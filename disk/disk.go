@@ -61,8 +61,7 @@ func (blockRecord *BlockRecord) getUnfilledBlock() *block {
 	if lastBlock.size == lastBlock.used {
 		return nil
 	}
-	remainderIndex := lastBlock.startIndex + lastBlock.used
-	return &block{remainderIndex, lastBlock.endIndex, 0, lastBlock.endIndex - remainderIndex}
+	return &lastBlock
 }
 
 var (
@@ -107,17 +106,23 @@ func (disk *disk) Write(fileBytes []byte) (*BlockRecord, error) {
 
 	for blocksNeeded != 0 {
 		dataBlock = disk.blockPool.GetResource().(block)
-		memoryBlock := disk.buffer[dataBlock.startIndex : dataBlock.endIndex+1]
-		readSize, err := fileBuffer.Read(memoryBlock)
-		if err != nil {
-			panic(err)
-		}
+		readSize := disk.writeDataToBlock(&dataBlock, fileBuffer, dataBlock.startIndex, dataBlock.endIndex+1)
 		dataBlock.SetUsed(readSize)
 		blockManifest.addBlock(dataBlock)
 		blocksNeeded--
 	}
 
 	return blockManifest, nil
+}
+func (disk *disk) writeDataToBlock(dataBlock *block, fileBuffer *bytes.Buffer, startIndex, endIndex int) int {
+
+	memoryBlock := disk.buffer[startIndex:endIndex]
+	readSize, err := fileBuffer.Read(memoryBlock)
+	if err != nil {
+		panic(err)
+	}
+	return readSize
+
 }
 
 func (disk *disk) Read(blockManifest *BlockRecord) ([]byte, error) {
@@ -131,6 +136,33 @@ func (disk *disk) Read(blockManifest *BlockRecord) ([]byte, error) {
 
 	}
 	return bufferWrapper.Bytes(), nil
+}
+
+func (disk *disk) Append(blockManifest *BlockRecord, fileBytes []byte) error {
+	//Wrap buffer for easy reads
+	fileBuffer := bytes.NewBuffer(fileBytes)
+	extraBlock := blockManifest.getUnfilledBlock()
+	dataToReadSize := len(fileBytes)
+	if extraBlock != nil {
+		numBytesRead := disk.writeDataToBlock(extraBlock, fileBuffer, extraBlock.used+extraBlock.startIndex, extraBlock.endIndex+1)
+		if numBytesRead == dataToReadSize {
+			return nil
+		}
+		dataToReadSize = dataToReadSize - numBytesRead
+	}
+	appendedRecords, err := disk.Write(fileBytes[dataToReadSize:])
+	if err != nil {
+		return err
+	}
+	mergeBlockRecords(blockManifest, appendedRecords)
+	return nil
+
+}
+
+func mergeBlockRecords(blockDest, blockSrc *BlockRecord) {
+	for i := 0; i < len(blockSrc.blocks); i++ {
+		blockDest.addBlock(blockDest.blocks[i])
+	}
 }
 
 func (disk *disk) Delete(blockManifest *BlockRecord) {
