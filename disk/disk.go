@@ -49,7 +49,7 @@ func NewBlockRecord() *BlockRecord {
 	return &BlockRecord{make([]block, 0)}
 }
 
-func (blockRecord *BlockRecord) addRecord(b block) {
+func (blockRecord *BlockRecord) addBlock(b block) {
 	blockRecord.blocks = append(blockRecord.blocks, b)
 }
 
@@ -113,7 +113,7 @@ func (disk *disk) Write(fileBytes []byte) (*BlockRecord, error) {
 			panic(err)
 		}
 		dataBlock.SetUsed(readSize)
-		blockManifest.addRecord(dataBlock)
+		blockManifest.addBlock(dataBlock)
 		blocksNeeded--
 	}
 

@@ -98,3 +98,17 @@ func TestRead(t *testing.T) {
 		}
 	}
 }
+
+func TestGetUnfilledBlock(t *testing.T) {
+	record := NewBlockRecord()
+	record.addBlock(block{startIndex: 0, endIndex: 100, used: 95, size: 100})
+	extraBlock := record.getUnfilledBlock()
+	assert.Equal(t, block{startIndex: 95, endIndex: 100, used: 0, size: 5}, *extraBlock)
+
+	record = NewBlockRecord()
+	record.addBlock(block{startIndex: 0, endIndex: 100, used: 100, size: 100})
+	extraBlock = record.getUnfilledBlock()
+	var block *block
+	//nil block
+	assert.Equal(t, extraBlock, block)
+}
