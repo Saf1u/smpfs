@@ -56,8 +56,11 @@ func (f *fileSystem) CreateDir(path string) error {
 	fmt.Println("CREATE DIR", structure, len(structure))
 	if len(structure) > 1 {
 		for i := 1; i < len(structure); i++ {
-			if _, exist := f.root.(*directory).contents[structure[i-1]]; !exist {
-				fmt.Println(structure[:i])
+			baseDir, err := f.root.(*directory).findParentDir(structure[:i])
+			if err != nil {
+				return err
+			}
+			if _, exist := baseDir.(*directory).contents[structure[i-1]]; !exist {
 				err = f.root.(*directory).createDir(structure[:i])
 				if err != nil {
 					return fmt.Errorf("issue creating parent directory: /%s - %w", strings.Join(structure[:i], "/"), err)
