@@ -3,6 +3,7 @@ package filesystem
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Saf1u/smpfs/disk"
@@ -45,11 +46,27 @@ func NewFileSystem(disk disk.Disk) FileSystem {
 	return &fileSystem{root: root, disk: disk}
 }
 
-// CreateDir creates a directory in the nested tree structure,it does not create all parent paths of the final path
+// CreateDir creates a directory in the nested tree structure.
+// Will create the parent directories if they do not already exist.
 func (f *fileSystem) CreateDir(path string) error {
 	structure, err := parseDirStruture(path)
 	if err != nil {
 		return err
+	}
+	fmt.Println("CREATE DIR", structure, len(structure))
+	if len(structure) > 1 {
+		for i := 1; i < len(structure); i++ {
+			baseDir, err := f.root.(*directory).findParentDir(structure[:i])
+			if err != nil {
+				return err
+			}
+			if _, exist := baseDir.(*directory).contents[structure[i-1]]; !exist {
+				err = f.root.(*directory).createDir(structure[:i])
+				if err != nil {
+					return fmt.Errorf("issue creating parent directory: /%s - %w", strings.Join(structure[:i], "/"), err)
+				}
+			}
+		}
 	}
 	return f.root.(*directory).createDir(structure)
 
