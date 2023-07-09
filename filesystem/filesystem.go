@@ -53,7 +53,6 @@ func (f *fileSystem) CreateDir(path string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("CREATE DIR", structure, len(structure))
 	if len(structure) > 1 {
 		for i := 1; i < len(structure); i++ {
 			baseDir, err := f.root.(*directory).findParentDir(structure[:i])

@@ -13,32 +13,24 @@ func main() {
 		panic(err)
 	}
 	fs := filesystem.NewFileSystem(disk)
-	err = fs.CreateDir("/home")
+	err = fs.CreateDir("/home/usr/path")
 	if err != nil {
 		panic(err)
 	}
-	err = fs.CreateDir("/myhome")
+	err = fs.CreateFile("/home/usr/path/file1.txt")
 	if err != nil {
 		panic(err)
 	}
-	err = fs.CreateDir("/home/usr")
+	err = fs.CreateFile("/home/usr/path/file2.txt")
 	if err != nil {
 		panic(err)
 	}
-	err = fs.CreateFile("/home/usr/file1.txt")
-	if err != nil {
-		panic(err)
-	}
-	err = fs.CreateFile("/home/usr/file2.txt")
-	if err != nil {
-		panic(err)
-	}
-	files, err := fs.ListDir("/home/usr")
+	files, err := fs.ListDir("/home/usr/path")
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(files)
-	fl, err := fs.OpenFile("/home/usr/file1.txt")
+	fl, err := fs.OpenFile("/home/usr/path/file1.txt")
 	if err != nil {
 		panic(err)
 	}
@@ -52,7 +44,7 @@ func main() {
 	}
 	fmt.Println(string(data))
 
-	fl_b, err := fs.OpenFile("/home/usr/file2.txt")
+	fl_b, err := fs.OpenFile("/home/usr/path/file2.txt")
 	if err != nil {
 		panic(err)
 	}
