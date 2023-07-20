@@ -19,6 +19,8 @@ type File interface {
 	getSize() int
 	getManifest() *disk.BlockRecord
 	setManifest(*disk.BlockRecord)
+	isFile() bool
+	name() string 
 }
 
 func NewFile(name string) File {

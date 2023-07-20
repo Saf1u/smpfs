@@ -640,7 +640,7 @@ func TestListsDir(t *testing.T) {
 			//eg:/usr/home/desktop desktop parentDir is home
 			pathName:          "/home/files",
 			expectedItemNames: []string{},
-			expectedError: ErrPathDoesNotExists,
+			expectedError:     ErrPathDoesNotExists,
 			setupFs: func(t *testing.T) *fileSystem {
 
 				home := &directory{
@@ -666,6 +666,104 @@ func TestListsDir(t *testing.T) {
 		items, err := fs.ListDir(testcase.pathName)
 		if err == nil {
 			assert.ElementsMatch(t, testcase.expectedItemNames, items)
+		}
+		assert.Equal(t, testcase.expectedError, err)
+
+	}
+}
+
+func TestDeleteFile(t *testing.T) {
+	tests := []struct {
+		name                        string
+		fileName                    string
+		expectedError               error
+		fileSize                    int
+		diskSize                    int
+		diskSizeBeforeDelete        int
+		expectedDiskSizeAfterDelete int
+		setupFs                     func(t *testing.T, fileSize int, diskSize int) *fileSystem
+	}{
+
+		{
+			name:     "deleting a file that exists",
+			fileName: "/home/textfile1.txt",
+			setupFs: func(t *testing.T, fileSize int, diskSize int) *fileSystem {
+				textfilea := NewFile("textfile1.txt")
+				home := &directory{
+					dirName: "home",
+					contents: map[string]item{
+						"textfile1.txt": textfilea,
+					},
+				}
+				root := &directory{
+					dirName: "root",
+					contents: map[string]item{
+						"home": home,
+					},
+				}
+				disk, _ := disk.NewDisk(diskSize, 10)
+				record, err := disk.Write(make([]byte, 20))
+				if err != nil {
+					t.Fatal(err)
+				}
+				textfilea.setManifest(record)
+				fs := &fileSystem{
+					root: root,
+					disk: disk,
+				}
+				return fs
+			},
+			fileSize:                    20,
+			diskSize:                    100,
+			expectedDiskSizeAfterDelete: 100,
+			diskSizeBeforeDelete:        80,
+		},
+
+		{
+			name:     "deleting a file that does exists",
+			fileName: "/home/textfiledoesnotexist.txt",
+			setupFs: func(t *testing.T, fileSize int, diskSize int) *fileSystem {
+				textfilea := NewFile("textfileexist.txt")
+				home := &directory{
+					dirName: "home",
+					contents: map[string]item{
+						"textfile1.txt": textfilea,
+					},
+				}
+				root := &directory{
+					dirName: "root",
+					contents: map[string]item{
+						"home": home,
+					},
+				}
+				disk, _ := disk.NewDisk(diskSize, 10)
+				record, err := disk.Write(make([]byte, 20))
+				if err != nil {
+					t.Fatal(err)
+				}
+				textfilea.setManifest(record)
+				fs := &fileSystem{
+					root: root,
+					disk: disk,
+				}
+				return fs
+			},
+			fileSize:                    20,
+			diskSize:                    100,
+			expectedDiskSizeAfterDelete: 80,
+			diskSizeBeforeDelete:        80,
+			expectedError: ErrFileDoesNotExist,
+		},
+	}
+	for _, testcase := range tests {
+		fs := testcase.setupFs(t, testcase.fileSize, testcase.diskSize)
+		sizeBefore := fs.GetAvailableMemory()
+		err := fs.DeleteFile(testcase.fileName)
+		if err == nil {
+			assert.Equal(t, testcase.diskSizeBeforeDelete, sizeBefore)
+			assert.Equal(t, testcase.expectedDiskSizeAfterDelete, fs.GetAvailableMemory())
+			_, err := fs.OpenFile(testcase.fileName)
+			assert.Equal(t, err, ErrFileDoesNotExist)
 		}
 		assert.Equal(t, testcase.expectedError, err)
 

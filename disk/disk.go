@@ -38,6 +38,7 @@ type Disk interface {
 	Write(fileBytes []byte) (*BlockRecord, error)
 	Read(blockManifest *BlockRecord) ([]byte, error)
 	Delete(blockManifest *BlockRecord)
+	GetAvailableMemory() int 
 	SaveDisk()
 }
 
@@ -89,6 +90,9 @@ func NewDisk(size int, blockSize int) (Disk, error) {
 		blockPool: pool,
 		blockSize: blockSize,
 	}, nil
+}
+func (disk *disk) GetAvailableMemory() int {
+	return disk.blockPool.AvaialbleResourceUnits() * disk.blockSize
 }
 
 func (disk *disk) Write(fileBytes []byte) (*BlockRecord, error) {

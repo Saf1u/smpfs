@@ -42,6 +42,20 @@ func (dir *directory) openFile(levels []string) (File, error) {
 	}
 
 }
+func (dir *directory) deleteFile(levels []string) (File, error) {
+	baseDir, err := dir.findParentDir(levels)
+	if err != nil {
+		return nil, err
+	}
+
+	fileName := levels[len(levels)-1]
+	if fsItem, exist := baseDir.(*directory).contents[fileName]; exist && fsItem.isFile() {
+		delete(baseDir.(*directory).contents, fileName)
+		return fsItem.(File), nil
+	} else {
+		return nil, ErrFileDoesNotExist
+	}
+}
 
 func (dir *directory) createDir(levels []string) error {
 	baseDir, err := dir.findParentDir(levels)
@@ -66,7 +80,7 @@ func (dir *directory) listDir(levels []string) ([]string, error) {
 	}
 	concDir := baseDir.(*directory)
 	items := make([]string, 0)
-	for names:= range concDir.contents {
+	for names := range concDir.contents {
 		items = append(items, names)
 	}
 	return items, nil

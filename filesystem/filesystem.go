@@ -21,6 +21,8 @@ type FileSystem interface {
 	CreateFile(path string) error
 	OpenFile(path string) (File, error)
 	ListDir(path string) ([]string, error)
+	GetAvailableMemory() int
+	DeleteFile(path string) error 
 }
 
 var (
@@ -69,6 +71,11 @@ func (f *fileSystem) CreateDir(path string) error {
 	}
 	return f.root.(*directory).createDir(structure)
 
+}
+
+// GetAvaialbleMemory returns the available space in bytes
+func (f *fileSystem) GetAvailableMemory() int {
+	return f.disk.GetAvailableMemory()
 }
 
 // WriteFile truncates the file and writes the data to the file
@@ -142,4 +149,18 @@ func (f *fileSystem) ListDir(path string) ([]string, error) {
 
 	return f.root.(*directory).listDir(structure)
 
+}
+
+// DeleteFile Searches for a file in the directory structure, and deletes it,returning memory back to the disk
+func (f *fileSystem) DeleteFile(path string) error {
+	structure, err := parseDirStruture(path)
+	if err != nil {
+		return err
+	}
+	fl, err := f.root.(*directory).deleteFile(structure)
+	if err != nil {
+		return err
+	}
+	f.disk.Delete(fl.getManifest())
+	return nil
 }
